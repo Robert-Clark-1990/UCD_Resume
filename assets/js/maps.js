@@ -1,4 +1,5 @@
 function initMap() {
+// Map()method works like a forEach, but returns an array with the results of the function
             var map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 3,
                 center: {

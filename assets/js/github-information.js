@@ -18,9 +18,31 @@ function userInformationHTML(user) {
         </div>`;
 }
 
-
+function repoInformationHTML(repos) {
+    if (repos.length == 0) {
+        return `<div class="clearfix repo-list>No repos!</div>`;
+    }
+// Map()method works like a forEach, but returns an array with the results of the function
+    var listItemsHTML = repos.map(function(repo){
+        return `<li>
+                    <a href="${repo.html_url}" target="_blank">${repo.name}</a>
+                </li>`;
+    });
+// Map returns an array, so we use join() on that array to join everything with a new line ("\n")
+    return `<div class="clearfix repo-list">
+                <p>
+                    <strong>Repo List:</strong>
+                </p>
+                <ul>
+                    ${listItemsHTML.join("\n")}
+                </ul>
+            </div>`;
+}
 
 function fetchGitHubInformation(event) {
+// These two lines make sure that searching for new github users or an empty user box emptys the list
+    $("#gh-user-data").html("");
+    $("#gh-repo-data").html("");
 
     var username = $("#gh-username").val();
     if (!username) {
@@ -28,17 +50,23 @@ function fetchGitHubInformation(event) {
         return;
     }
 
-    $("gh-user-data").html(
+    $("#gh-user-data").html(
         `<div id="loader">
             <img src="assets/css/loader.gif" alt="loading..." />
         </div>`);
 // This bit is saying that when the specified username is called, then user information will be displayed
+// It is also saying that the repos of the user will be called.
     $.when(
-        $.getJSON(`https://api.github.com/users/${username}`)
+        $.getJSON(`https://api.github.com/users/${username}`),
+        $.getJSON(`https://api.github.com/users/${username}/repos`)
     ).then(
-        function(response) {
-            var userData = response;
+// When doing two calls like this, the when() method packs a response up into arrays, and each one is the element of the array
+//So we need to put indexes in there for these responses [0]
+        function(firstResponse, secondResponse) {
+            var userData = firstResponse[0];
+            var repoData = secondResponse[0];
             $("#gh-user-data").html(userInformationHTML(userData));
+            $("#gh-repo-data").html(repoInformationHTML(repoData));
 // This bit is saying that if the username cannot be found, (ie 404 message) it will return a message saying its not found
         }, function(errorResponse) {
             if (errorResponse.status === 404) {
@@ -51,3 +79,6 @@ function fetchGitHubInformation(event) {
             }
         });
 }
+
+// This fetches the Robert-Clark-1990 GitHub and repo info when the page is loaded
+$(document).ready(fetchGitHubInformation);
