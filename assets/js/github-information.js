@@ -71,6 +71,12 @@ function fetchGitHubInformation(event) {
         }, function(errorResponse) {
             if (errorResponse.status === 404) {
                 $("#gh-user-data").html(`<h2>No info found for user ${username}</h2>`);
+// This bit is looking for 403 error if access is denied from too many searches.
+            } else if(errorResponse.status === 403) {
+//X-RateLimit-Reset is a header provided by GitHub to show when we can use it again. It's a UNIX timestamp so it needs to be * 1000 and turned into a date object to be understood
+                var resetTime = new Date(errorResponse.getResponseHeader('X-RateLimit-Reset')*1000);
+// toLocaleDateString gets the location from the browser to print local time
+                $("#gh-user-data").html(`<h4>Too many requests, please wait until ${resetTime.toLocaleTimeString()}</h4>`);
             } else {
 // This bit is saying if its a different error, it will log the error in console log then post it as an error message
                 console.log(errorResponse);
